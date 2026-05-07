@@ -193,33 +193,93 @@ export default function Home() {
             </div>
           )}
 
-          {page === "profile" && (
-            <div style={{ textAlign: "center" }}>
-              <img src={myData?.icon} style={{ width: "80px", height: "80px", borderRadius: "20px", marginBottom: "20px" }} />
-              <input value={editName} onChange={e => setEditName(e.target.value)} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ddd", marginBottom:"10px" }} />
-              <input placeholder="アイコン画像URL" value={editIcon} onChange={e => setEditIcon(e.target.value)} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ddd", marginBottom:"20px" }} />
-              <button onClick={async () => { await updateDoc(doc(db, "users", user.uid), { name: editName, icon: editIcon || DEFAULT_ICON }); alert("保存！"); }} className={btnAni} style={{ background: "#000", color: "#fff", width: "100%", padding: "12px", borderRadius: "10px" }}>保存</button>
-              <button onClick={() => signOut(auth)} className={btnAni} style={{ color: "red", background: "none", marginTop: "40px" }}>ログアウト</button>
-            </div>
-          )}
+         {page === "profile" && (
+  <div style={{ textAlign: "center" }}>
+    {/* アイコン表示部分（クリックでファイル選択も可能に） */}
+    <div style={{ position: "relative", width: "80px", height: "80px", margin: "0 auto 20px" }}>
+      <img 
+        src={editIcon || myData?.icon || DEFAULT_ICON} 
+        style={{ width: "80px", height: "80px", borderRadius: "20px", objectFit: "cover", border: "1px solid #eee" }} 
+      />
+      <label style={{ 
+        position: "absolute", bottom: "-5px", right: "-5px", background: "#000", color: "#fff", 
+        width: "28px", height: "28px", borderRadius: "50%", display: "flex", justifyContent: "center", 
+        alignItems: "center", cursor: "pointer", fontSize: "14px", border: "2px solid #fff" 
+      }}>
+        📷
+        <input 
+          type="file" 
+          hidden 
+          accept="image/*" 
+          onChange={(e: any) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onloadend = () => setEditIcon(reader.result as string); // Base64形式でセット
+              reader.readAsDataURL(file);
+            }
+          }} 
+        />
+      </label>
+    </div>
+
+    {/* 名前入力 */}
+    <input 
+      value={editName} 
+      onChange={e => setEditName(e.target.value)} 
+      placeholder="名前"
+      style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ddd", marginBottom:"10px" }} 
+    />
+
+    {/* 保存ボタン */}
+    <button 
+      onClick={async () => { 
+        await updateDoc(doc(db, "users", user.uid), { name: editName, icon: editIcon || myData?.icon || DEFAULT_ICON }); 
+        alert("保存しました！"); 
+      }} 
+      className={btnAni} 
+      style={{ background: "#000", color: "#fff", width: "100%", padding: "12px", borderRadius: "10px", fontWeight: "bold" }}
+    >
+      保存
+    </button>
+
+    <button onClick={() => signOut(auth)} className={btnAni} style={{ color: "red", background: "none", marginTop: "40px" }}>
+      ログアウト
+    </button>
+  </div>
+)}
 
           {(page === "chat" || page === "dm") && (
-            <div>
-              <button onClick={() => setPage(page === "dm" ? "friends" : "rooms")} className={btnAni} style={{marginBottom:"15px", background:"#f0f0f0", padding:"5px 15px", borderRadius:"10px"}}>← 戻る</button>
-              <div style={{ display: "flex", flexDirection: "column-reverse" }}>
-                {posts.map(p => (
-                  <div key={p.id} style={{ display: "flex", gap: "10px", padding: "10px 0", borderBottom: "1px solid #f9f9f9" }}>
-                    <img src={p.icon || DEFAULT_ICON} style={{ width: "40px", height: "40px", borderRadius: "10px", cursor:"pointer" }} onClick={() => { const found = allUsers.find(u => u.uid === p.senderUid); if(found) setSelectedUser(found); }} />
-                    <div style={{flex:1}}>
-                      <b style={{fontSize:"11px"}}>{p.name}</b>
-                      <p style={{margin:"2px 0", fontSize:"15px"}}>{p.text}</p>
-                      {p.image && <img src={p.image} style={{maxWidth: "100%", borderRadius: "10px", marginTop:"5px"}} />}
-                    </div>
-                  </div>
-                ))}
-              </div>
+  <div>
+    <button onClick={() => setPage(page === "dm" ? "friends" : "rooms")} className={btnAni} style={{marginBottom:"15px", background:"#f0f0f0", padding:"5px 15px", borderRadius:"10px"}}>← 戻る</button>
+    <div style={{ display: "flex", flexDirection: "column-reverse" }}>
+      {posts.map(p => (
+        <div key={p.id} style={{ display: "flex", gap: "10px", padding: "12px 0", borderBottom: "1px solid #f9f9f9" }}>
+          {/* アイコン：objectFit追加で画像が伸びないように修正 */}
+          <img 
+            src={p.icon || DEFAULT_ICON} 
+            style={{ width: "42px", height: "42px", borderRadius: "12px", cursor:"pointer", objectFit: "cover" }} 
+            onClick={() => { const found = allUsers.find(u => u.uid === p.senderUid); if(found) setSelectedUser(found); }} 
+          />
+          <div style={{flex:1}}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <b style={{fontSize:"12px"}}>{p.name}</b>
+              {/* --- 日時表示を追加 --- */}
+              <span style={{fontSize:"10px", color:"#aaa"}}>
+                {p.createdAt?.toDate 
+                  ? p.createdAt.toDate().toLocaleString('ja-JP', { hour: '2-digit', minute: '2-digit' }) 
+                  : "..."}
+              </span>
             </div>
-          )}
+            {/* 改行が反映されるように whiteSpace を追加 */}
+            <p style={{margin:"2px 0", fontSize:"15px", whiteSpace: "pre-wrap", color: "#333"}}>{p.text}</p>
+            {p.image && <img src={p.image} style={{maxWidth: "100%", borderRadius: "10px", marginTop:"8px", border: "1px solid #eee"}} />}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
           {page === "auth" && (
             <div style={{ padding: "40px 10px", textAlign: "center" }}>
@@ -289,7 +349,36 @@ export default function Home() {
             <div style={{ background: "#fff", width: "85%", padding: "20px", borderRadius: "20px" }}>
               <h3 style={{marginTop: 0}}>📜 利用規約</h3>
               <div style={{ fontSize: "13px", color: "#666", lineHeight: "1.6" }}>
-                ・荒らし禁止、他者への敬意を。<br/>・24時間でデータはリセットされます。
+                利用規約<br/>
+本利用規約（以下「本規約」）は、本チャットサイト（以下「本サービス」）の利用条件を定めるものです。利用者は本サービスを利用することで、本規約に同意したものとみなします。<br/><br/>
+
+第1条（適用）<br/>
+本規約は、利用者と運営者との間の本サービス利用に関わる一切の関係に適用されます。<br/><br/>
+
+第2条（禁止事項）<br/>
+利用者は以下の行為をしてはなりません。<br/>
+・法令または公序良俗に違反する行為<br/>
+・他者への誹謗中傷、嫌がらせ、脅迫<br/>
+・個人情報（住所・電話番号・メール等）の無断公開<br/>
+・なりすまし行為<br/>
+・スパム投稿や荒らし行為<br/>
+・不正アクセスやシステムへの攻撃<br/>
+・その他運営が不適切と判断する行為<br/><br/>
+
+第3条（アカウント管理）<br/>
+利用者は自己の責任においてアカウント情報を管理するものとし、第三者への貸与・譲渡は禁止します。<br/><br/>
+
+第4条（投稿内容）<br/>
+投稿されたコンテンツの責任はすべて投稿者に帰属します。運営は必要に応じて投稿内容を削除・非表示にできるものとします。<br/><br/>
+
+第5条（サービスの停止・変更）<br/>
+運営者は、事前の通知なく本サービスの全部または一部を変更・停止・終了できるものとします。<br/><br/>
+
+第6条（免責事項）<br/>
+本サービスの利用により発生したいかなる損害についても、運営者は一切の責任を負いません。<br/><br/>
+
+第7条（規約の変更）<br/>
+運営者は必要に応じて本規約を変更できるものとし、変更後も本サービスを利用した場合は同意したものとみなします。<br/><br/><br/>・24時間でデータはリセットされます。
               </div>
               <button onClick={() => setShowTos(false)} className={btnAni} style={{ background: "#000", color: "#fff", width: "100%", padding: "12px", marginTop: "20px", borderRadius: "10px" }}>同意して閉じる</button>
             </div>
@@ -333,14 +422,19 @@ export default function Home() {
         )}
 
         {user && (
-          <nav style={{ display: "flex", position: "fixed", bottom: 0, width: "100%", maxWidth: "500px", background: "#fff", borderTop: "1px solid #eee", height: "70px", zIndex: 100 }}>
-            {["home", "rooms", "friends", "profile"].map(p => (
-              <button key={p} onClick={() => setPage(p)} className={btnAni} style={{ flex: 1, background: "none", color: page === p ? "#000" : "#ccc" }}>
-                <div style={{fontSize: "22px"}}>{p === "home" ? "ホーム" : p === "部屋一覧" ? "💬" : p === "友達" ? "👥" : "プロフ"}</div>
-              </button>
-            ))}
-          </nav>
-        )}
+  <nav style={{ display: "flex", position: "fixed", bottom: 0, width: "100%", maxWidth: "500px", background: "#fff", borderTop: "1px solid #eee", height: "70px", zIndex: 100 }}>
+    {["home", "rooms", "friends", "profile"].map(p => (
+      <button key={p} onClick={() => setPage(p)} className={btnAni} style={{ flex: 1, background: "none", color: page === p ? "#000" : "#ccc" }}>
+        <div style={{fontSize: "14px", fontWeight: "bold"}}>
+          {p === "home" && "ホーム"}
+          {p === "rooms" && "部屋"}
+          {p === "friends" && "友達"}
+          {p === "profile" && "プロフ"}
+        </div>
+      </button>
+    ))}
+  </nav>
+)}
 
         {(page === "chat" || page === "dm") && (
           <div style={{ position: "fixed", bottom: "70px", width: "100%", maxWidth: "500px", background: "#fff", padding: "10px", borderTop: "1px solid #eee", zIndex: 100 }}>
