@@ -13,7 +13,7 @@ import { auth, db } from "@/firebase";
 const DEFAULT_ICON = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 // ★【重要】自分のUIDをここに貼り付けてください（管理者になります）
-const ADMIN_UID = "YOUR_ACTUAL_UID_HERE"; 
+const ADMIN_UID = "brB1fXAZbwMXiMfMclroekYNVIw1"; 
 
 const ROOMS = [
   { id: "general1", name: "雑談1" }, { id: "general2", name: "雑談2" }, { id: "general3", name: "雑談3" },
@@ -204,7 +204,36 @@ export default function Home() {
           {page === "friends" && ( <div><h3>フレンドリスト</h3>{/* 以下、元のロジック */}</div> )}
           {page === "profile" && ( <div style={{ paddingTop: "20px" }}>{user ? (<> <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "40px" }}><img src={myData?.icon || DEFAULT_ICON} style={{ width: "80px", height: "80px", borderRadius: "20px", objectFit: "cover" }} /><div><h3 style={{ margin: 0 }}>{myData?.name}</h3><p style={{ color: "#999", margin: 0 }}>@{myData?.displayId}</p></div></div><div style={{ display: "flex", flexDirection: "column", gap: "12px" }}><div style={{ display: "flex", gap: "10px" }}><label className="btn-active" style={{ ...btnStyle, flex: 1, background: "#f5f5f5", padding: "12px", borderRadius: "12px", textAlign: "center" }}>アイコン変更<input type="file" style={{ display: "none" }} onChange={e => { const r = new FileReader(); r.onload = () => updateDoc(doc(db, "users", user.uid), { icon: r.result as string }); r.readAsDataURL(e.target.files![0]); }} /></label><button onClick={() => updateDoc(doc(db, "users", user.uid), { icon: DEFAULT_ICON })} className="btn-active" style={{ ...btnStyle, border: "1px solid #eee", color: "red", padding: "12px", borderRadius: "12px" }}>削除</button></div><input value={editName} onChange={e => setEditName(e.target.value)} style={{ width: "100%", padding: "15px", borderRadius: "12px", border: "1px solid #f0f0f0" }} /><button onClick={() => updateDoc(doc(db, "users", user.uid), { name: editName })} className="btn-active" style={{ ...btnStyle, background: "#000", color: "#fff", padding: "15px", borderRadius: "12px", fontWeight: "bold" }}>設定を保存</button><button onClick={() => signOut(auth)} className="btn-active" style={{ ...btnStyle, color: "#999", marginTop: "20px", background: "none" }}>ログアウト</button></div></>) : <p>ログインが必要です</p>}</div> )}
           {page === "notify" && ( <div><h3>通知</h3>{/* 以下、元のロジック */}</div> )}
-          {page === "terms" && ( <div><button onClick={() => setPage("home")} style={{ marginBottom: "20px", background: "#f5f5f5", border: "none", padding: "5px 15px", borderRadius: "8px" }}>戻る</button><h3>利用規約</h3><p style={{ fontSize: "14px", color: "#666" }}>1. 他人への誹謗中傷を禁止します。<br/>2. 不適切な画像の投稿を禁止します。<br/>3. 楽しく使いましょう。</p></div> )}
+          {page === "terms" && ( <div><button onClick={() => setPage("home")} style={{ marginBottom: "20px", background: "#f5f5f5", border: "none", padding: "5px 15px", borderRadius: "8px" }}>戻る</button><h3>利用規約</h3><p style={{ fontSize: "14px", color: "#666" }}>利用規約<br/>
+本利用規約（以下「本規約」）は、本チャットサイト（以下「本サービス」）の利用条件を定めるものです。利用者は本サービスを利用することで、本規約に同意したものとみなします。<br/><br/>
+
+第1条（適用）<br/>
+本規約は、利用者と運営者との間の本サービス利用に関わる一切の関係に適用されます。<br/><br/>
+
+第2条（禁止事項）<br/>
+利用者は以下の行為をしてはなりません。<br/>
+・法令または公序良俗に違反する行為<br/>
+・他者への誹謗中傷、嫌がらせ、脅迫<br/>
+・個人情報（住所・電話番号・メール等）の無断公開<br/>
+・なりすまし行為<br/>
+・スパム投稿や荒らし行為<br/>
+・不正アクセスやシステムへの攻撃<br/>
+・その他運営が不適切と判断する行為<br/><br/>
+
+第3条（アカウント管理）<br/>
+利用者は自己の責任においてアカウント情報を管理するものとし、第三者への貸与・譲渡は禁止します。<br/><br/>
+
+第4条（投稿内容）<br/>
+投稿されたコンテンツの責任はすべて投稿者に帰属します。運営は必要に応じて投稿内容を削除・非表示にできるものとします。<br/><br/>
+
+第5条（サービスの停止・変更）<br/>
+運営者は、事前の通知なく本サービスの全部または一部を変更・停止・終了できるものとします。<br/><br/>
+
+第6条（免責事項）<br/>
+本サービスの利用により発生したいかなる損害についても、運営者は一切の責任を負いません。<br/><br/>
+
+第7条（規約の変更）<br/>
+運営者は必要に応じて本規約を変更できるものとし、変更後も本サービスを利用した場合は同意したものとみなします。<br/><br/></p></div> )}
           {page === "auth" && ( <div style={{ textAlign: "center", padding: "40px 10px" }}><h2 style={{ marginBottom: "30px" }}>Chatia</h2><input placeholder="名前" value={username} onChange={e => setUsername(e.target.value)} style={{ width: "100%", padding: "15px", marginBottom: "10px", borderRadius: "12px", border: "1px solid #ddd" }} /><input type="password" placeholder="パスワード" value={password} onChange={e => setPassword(e.target.value)} style={{ width: "100%", padding: "15px", marginBottom: "20px", borderRadius: "12px", border: "1px solid #ddd" }} /><button onClick={() => handleAuth("signup")} className="btn-active" style={{ ...btnStyle, width: "100%", background: "#000", color: "#fff", padding: "15px", borderRadius: "12px", fontWeight: "bold" }}>新規登録</button><button onClick={() => handleAuth("login")} className="btn-active" style={{ ...btnStyle, width: "100%", marginTop: "10px", padding: "15px", borderRadius: "12px", border: "1px solid #ddd" }}>ログイン</button></div> )}
 
         </div>
